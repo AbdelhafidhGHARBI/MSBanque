@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microservice Banque</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .panel {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        .edit-btn {
+            background-color: #f39c12;
+        }
+        .delete-btn {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+<h1>Microservice Banque</h1>
+<div class="container">
+    <div class="panel">
+        <h2>Créer/Modifier une Banque</h2>
+        <form id="banqueForm">
+            <input type="hidden" id="banqueId">
+            <div>
+                <label for="nom">Nom:</label>
+                <input type="text" id="nom" required>
+            </div>
+            <div>
+                <label for="code">Code:</label>
+                <input type="text" id="code" required>
+            </div>
+            <div>
+                <label for="adresse">Adresse:</label>
+                <input type="text" id="adresse" required>
+            </div>
+            <button type="submit" id="submitBtn">Créer</button>
+        </form>
+    </div>
+    <div class="panel">
+        <h2>Liste des Banques</h2>
+        <table id="banqueTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Code</th>
+                <th>Adresse</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Banques will be listed here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:8082/api/banques';
+    const COMPTE_API_URL = 'http://localhost:8081/api/comptes';
+    let banques = [];
+    let editMode = false;
+
+    // Load all banques on page load
+    document.addEventListener('DOMContentLoaded', fetchBanques);
+
+    // Handle form submit
+    document.getElementById('banqueForm').addEventListener('submit', handleSubmit);
+
+    async function fetchBanques() {
+        try {
+            const response = await fetch(API_URL);
+            banques = await response.json();
+            renderBanqueTable();
+        } catch (error) {
+            console.error('Error fetching banques:', error);
+            // For demo purposes, use sample data if API is not available
+            banques = [
+                { id: "1", nom: "BNP Paribas", code: "BNP", adresse: "Paris, France", comptes: [1, 2] },
+                { id: "2", nom: "Société Générale", code: "SG", adresse: "Lyon, France", comptes: [3] },
+                { id: "3", nom: "Crédit Agricole", code: "CA", adresse: "Bordeaux, France", comptes: [] }
+            ];
+            renderBanqueTable();
+        }
+    }
+
+    function renderBanqueTable() {
+        const tableBody = document.querySelector('#banqueTable tbody');
+        tableBody.innerHTML = '';
+
+        banques.forEach(banque => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                    <td>${banque.id}</td>
+                    <td>${banque.nom}</td>
+                    <td>${banque.code}</td>
+                    <td>${banque.adresse}</td>
+                    <td class="actions">
+                        <button onclick="editBanque('${banque.id}')" class="edit-btn">Modifier</button>
+                        <button onclick="deleteBanque('${banque.id}')" class="delete-btn">Supprimer</button>
+                    </td>
+                `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+
+        const banqueData = {
+            id: document.getElementById('banqueId').value || null,
+            nom: document.getElementById('nom').value,
+            code: document.getElementById('code').value,
+            adresse: document.getElementById('adresse').value,
+            comptes: []
+        };
+
+        try {
+            let response;
+            if (editMode) {
+                response = await fetch(`${API_URL}/${banqueData.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(banqueData)
+                });
+            } else {
+                response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(banqueData)
+                });
+            }
+
+            if (response.ok) {
+                // Reset form
+                document.getElementById('banqueForm').reset();
+                document.getElementById('banqueId').value = '';
+                document.getElementById('submitBtn').textContent = 'Créer';
+                editMode = false;
+
+                // Refresh table
+                fetchBanques();
+            }
+        } catch (error) {
+            console.error('Error saving banque:', error);
+            // For demo purposes, just simulate successful operation
+            if (editMode) {
+                const index = banques.findIndex(b => b.id === banqueData.id);
+                if (index !== -1) {
+                    banques[index] = banqueData;
+                }
+            } else {
+                banqueData.id = (banques.length + 1).toString();
+                banques.push(banqueData);
+            }
+
+            // Reset form
+            document.getElementById('banqueForm').reset();
+            document.getElementById('banqueId').value = '';
+            document.getElementById('submitBtn').textContent = 'Créer';
+            editMode = false;
+
+            // Refresh table
+            renderBanqueTable();
+        }
+    }
+
+    function editBanque(id) {
+        const banque = banques.find(b => b.id === id);
+        if (banque) {
+            document.getElementById('banqueId').value = banque.id;
+            document.getElementById('nom').value = banque.nom;
+            document.getElementById('code').value = banque.code;
+            document.getElementById('adresse').value = banque.adresse;
+            document.getElementById('submitBtn').textContent = 'Modifier';
+            editMode = true;
+        }
+    }
+
+    async function deleteBanque(id) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette banque?')) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    fetchBanques();
+                }
+            } catch (error) {
+                console.error('Error deleting banque:', error);
+                // For demo purposes, simulate successful deletion
+                banques = banques.filter(b => b.id !== id);
+                renderBanqueTable();
+            }
+        }
+    }
+
+    // Function to send data to the other microservice (for demo)
+    function notifyCompteService(banqueId, operation) {
+        console.log(`Notifying compte service about ${operation} for banque ${banqueId}`);
+        // In a real implementation, you would make an API call to the compte service
+    }
+</script>
+</body>
+</html>

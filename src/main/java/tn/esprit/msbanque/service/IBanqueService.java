@@ -1,17 +1,22 @@
 package tn.esprit.msbanque.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+
 import tn.esprit.msbanque.dto.BanqueDto;
 
-import java.util.Map;
+import java.util.List;
 
 
 public interface IBanqueService {
     BanqueDto create(BanqueDto banqueDto);
+
     BanqueDto findById(String id);
-    Page<BanqueDto> findAll(Pageable pageable);
-    BanqueDto partialUpdate(String id, Map<String, Object> updates);
+
+    List<BanqueDto> findAll();
+
+    BanqueDto update(String id, BanqueDto banqueDto);
+
     void delete(String id);
-    Page<BanqueDto> search(String nom, String code, Pageable pageable);
+
+    // méthode pour feignClient
+    BanqueDto addCompteToBanque(String banqueId, Long compteId);
 }

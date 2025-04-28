@@ -15,77 +15,63 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.msbanque.client.CompteFeignClient;
 import tn.esprit.msbanque.dto.BanqueDto;
+import tn.esprit.msbanque.dto.CompteDto;
+import tn.esprit.msbanque.repositories.BanqueRepository;
 import tn.esprit.msbanque.service.IBanqueService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
+
 
 
 @RestController
 @RequestMapping("/api/banques")
 @RequiredArgsConstructor
+@CrossOrigin("http://localhost:8081")
 @Tag(name = "Banque", description = "API de gestion des banques")
 public class BanqueRestController {
 
     private final IBanqueService banqueService;
-    private static final Logger logger = LoggerFactory.getLogger(BanqueRestController.class);
-
+    private final CompteFeignClient compteFeignClient;
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Créer une nouvelle banque")
-    @ApiResponse(responseCode = "201", description = "Banque créée avec succès")
-    @ApiResponse(responseCode = "400", description = "Données invalides")
-    @ApiResponse(responseCode = "409", description = "La banque existe déjà")
-    public BanqueDto create(@Valid @RequestBody BanqueDto banqueDto) {
-        logger.info("Création d'une nouvelle banque: {}", banqueDto.nom());
-        return banqueService.create(banqueDto);
+    public ResponseEntity<BanqueDto> create(@RequestBody @Valid BanqueDto banqueDto) {
+        BanqueDto createdBanque = banqueService.create(banqueDto);
+        return new ResponseEntity<>(createdBanque, HttpStatus.CREATED);
     }
 
-    @PatchMapping("/{id}")
-    @Operation(summary = "Mettre à jour partiellement une banque")
-    public BanqueDto partialUpdate(
-            @PathVariable String id,
-            @RequestBody Map<@NotBlank String, Object> updates) {
-        logger.info("Mise à jour partielle de la banque avec ID: {} et données: {}", id, updates);
-        return banqueService.partialUpdate(id, updates);
+    @GetMapping("/{id}")
+    public ResponseEntity<BanqueDto> findById(@PathVariable String id) {
+        BanqueDto banqueDto = banqueService.findById(id);
+        return ResponseEntity.ok(banqueDto);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<BanqueDto>> findAll() {
+        List<BanqueDto> banques = banqueService.findAll();
+        return ResponseEntity.ok(banques);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BanqueDto> update(@PathVariable String id, @RequestBody @Valid BanqueDto banqueDto) {
+        BanqueDto updatedBanque = banqueService.update(id, banqueDto);
+        return ResponseEntity.ok(updatedBanque);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Supprimer une banque")
-    @ApiResponse(responseCode = "204", description = "Banque supprimée")
-    @ApiResponse(responseCode = "404", description = "Banque non trouvée")
     public ResponseEntity<Void> delete(@PathVariable String id) {
-        logger.info("Suppression de la banque avec ID: {}", id);
         banqueService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping
-    @Operation(summary = "Lister toutes les banques (paginated)")
-    public Page<BanqueDto> getAll(
-            @Parameter(description = "Paramètres de pagination")
-            @PageableDefault(size = 10, sort = "nom") Pageable pageable) {
-        logger.info("Récupération des banques avec pagination: {}", pageable);
-        return banqueService.findAll(pageable);
+    @PutMapping("/{id}/comptes")
+    public ResponseEntity<BanqueDto> addCompteToBanque(
+            @PathVariable String id,
+            @RequestBody Long compteId) {
+        BanqueDto updatedBanque = banqueService.addCompteToBanque(id, compteId);
+        return ResponseEntity.ok(updatedBanque);
     }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "Trouver une banque par son ID")
-    @ApiResponse(responseCode = "404", description = "Banque non trouvée")
-    public BanqueDto getById(@PathVariable String id) {
-        logger.info("Recherche de la banque avec ID: {}", id);
-        return banqueService.findById(id);
-    }
-
-    @GetMapping("/search")
-    @Operation(summary = "Rechercher des banques")
-    public Page<BanqueDto> search(
-            @RequestParam(required = false) String nom,
-            @RequestParam(required = false) String code,
-            @PageableDefault(size = 10) Pageable pageable) {
-        logger.info("Recherche de banques par nom: {}, code: {}", nom, code);
-        return banqueService.search(nom, code, pageable);
-    }
-
-
 }
