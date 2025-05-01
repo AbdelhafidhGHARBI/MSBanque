@@ -31,8 +31,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/banques")
 @RequiredArgsConstructor
-@CrossOrigin("http://localhost:8081")
-@Tag(name = "Banque", description = "API de gestion des banques")
+@CrossOrigin
 public class BanqueRestController {
 
     private final IBanqueService banqueService;
