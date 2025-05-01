@@ -1,6 +1,6 @@
 spring:
   application:
-    name: ms-banque
+    name: ms-banque  # Nom du service
   data:
     mongodb:
       host: localhost
@@ -13,4 +13,6 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/  # URL du serveur Eureka
+    fetch-registry: true  # Permet à ce service de récupérer le registre des services
+    register-with-eureka: true  # Permet à ce service de s'enregistrer auprès d'Eureka
