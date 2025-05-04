@@ -29,7 +29,7 @@ import java.util.Map;
 
 
 @RestController
-@RequestMapping("/api/banques")
+@RequestMapping("/banques")
 @RequiredArgsConstructor
 @CrossOrigin
 public class BanqueRestController {
