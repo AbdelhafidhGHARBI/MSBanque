@@ -1,20 +1,20 @@
-spring:
-  application:
-    name: ms-banque
-#    ajouter l'url de config server
-  data:
-    mongodb:
-      host: localhost
-      port: 27017
-      database: banque_db_test
-  cloud:
-    inetutils:
-      prefer-hostname-over-ip: true
-
-server:
-  port: 8082
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
+#spring:
+#  application:
+#    name: ms-banque
+##    ajouter l'url de config server
+#  data:
+#    mongodb:
+#      host: localhost
+#      port: 27017
+#      database: banque_db_test
+#  cloud:
+#    inetutils:
+#      prefer-hostname-over-ip: true
+#
+#server:
+#  port: 8082
+#
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka/
