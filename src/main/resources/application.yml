@@ -18,3 +18,15 @@
 #  client:
 #    service-url:
 #      defaultZone: http://localhost:8761/eureka/
+
+spring:
+  application:
+    name: ms-banque
+  #  profiles:
+  #    active: DEV
+  config:
+    import: optional:configserver:http://localhost:8888
+# Facultatif mais recommandé
+logging:
+  level:
+    root: INFO
