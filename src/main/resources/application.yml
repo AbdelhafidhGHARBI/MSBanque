@@ -30,3 +30,9 @@ spring:
 logging:
   level:
     root: INFO
+
+# Définir l'URL de Eureka de manière dynamique:
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
