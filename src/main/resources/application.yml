@@ -23,9 +23,22 @@ spring:
   application:
     name: ms-banque
   #  profiles:
-  #    active: DEV
+  #  active: DEV
   config:
     import: optional:configserver:http://localhost:8888
+
+  # configuration Kafka:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: ms-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
 # Facultatif mais recommandé
 logging:
   level:
@@ -36,3 +49,6 @@ eureka:
   client:
     serviceUrl:
       defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+
+
+
